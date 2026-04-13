@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>🔍 Buscador de Editais Públicos</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;padding:20px 16px}
+    header{text-align:center;margin-bottom:22px}
+    header h1{font-size:1.8rem;color:#60a5fa}
+    header p{color:#94a3b8;margin-top:5px;font-size:.85rem}
+    .tag-update{display:inline-block;margin-top:8px;background:#1e293b;border:1px solid #334155;
+      border-radius:20px;padding:4px 14px;font-size:.75rem;color:#64748b}
+    .tag-update b{color:#4ade80}
+    .panel{background:#1e293b;border-radius:14px;padding:18px 22px;max-width:920px;
+      margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+    .ig{display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px}
+    .ig label{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px}
+    .ig input,.ig select{background:#0f172a;border:1px solid #334155;border-radius:8px;
+      padding:9px 12px;color:#e2e8f0;font-size:.91rem;outline:none;transition:border-color .2s}
+    .ig input:focus,.ig select:focus{border-color:#60a5fa}
+    #btn-buscar{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:9px 26px;
+      font-size:.93rem;font-weight:700;cursor:pointer;white-space:nowrap;height:40px;transition:background .2s}
+    #btn-buscar:hover{background:#1d4ed8}
+    .fontes-row{max-width:920px;margin:0 auto 14px;background:#1e293b;border-radius:10px;
+      padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .fontes-row>span{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+    .ft{display:flex;align-items:center;gap:6px;background:#0f172a;border:1px solid #334155;
+      border-radius:7px;padding:5px 11px;cursor:pointer;transition:border-color .2s;user-select:none}
+    .ft:hover{border-color:#60a5fa}
+    .ft input{accent-color:#60a5fa;width:14px;height:14px;cursor:pointer}
+    .ft label{font-size:.82rem;color:#cbd5e1;cursor:pointer}
+    .stats{max-width:920px;margin:0 auto 14px;display:none;flex-wrap:wrap;gap:9px}
+    .sc{background:#1e293b;border-radius:9px;padding:8px 14px;font-size:.78rem;
+      color:#94a3b8;flex:1;min-width:90px;text-align:center}
+    .sc span{display:block;font-size:1.3rem;font-weight:700;color:#60a5fa}
+    .sc.urgente span{color:#f87171}
+    .results{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+    .card{background:#1e293b;border-radius:11px;padding:14px 18px;border-left:4px solid #2563eb;
+      transition:transform .15s,box-shadow .15s}
+    .card:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(0,0,0,.4)}
+    .card.previsto{border-left-color:#6366f1;opacity:.9}
+    .card.if-card{border-left-color:#10b981}
+    .card.urgente{border-left-color:#ef4444}
+    .ch{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+    .ctitle{font-size:.95rem;font-weight:700;color:#f1f5f9;line-height:1.35;margin-top:4px}
+    .badges{display:flex;gap:5px;flex-wrap:wrap}
+    .badge{font-size:.67rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+    .ba{background:#16a34a22;color:#4ade80;border:1px solid #16a34a}
+    .bp{background:#6366f122;color:#a5b4fc;border:1px solid #6366f1}
+    .bif{background:#10b98122;color:#6ee7b7;border:1px solid #10b981}
+    .bu{background:#ef444422;color:#fca5a5;border:1px solid #ef4444}
+    .cb{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px 16px;font-size:.79rem;color:#94a3b8}
+    .cb strong{color:#cbd5e1}
+    .cf{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap}
+    .cf a{font-size:.77rem;color:#60a5fa;text-decoration:none;border:1px solid #334155;
+      border-radius:5px;padding:3px 10px;transition:background .15s}
+    .cf a:hover{background:#1e3a5f}
+    .tag{font-size:.67rem;background:#0f172a;border:1px solid #334155;border-radius:5px;
+      padding:2px 7px;color:#60a5fa;font-weight:700}
+    .tag.green{color:#4ade80;border-color:#16a34a}
+    .empty{text-align:center;color:#64748b;padding:40px;font-size:.92rem}
+    #loading{text-align:center;padding:40px;color:#94a3b8;display:none}
+    .spinner{display:inline-block;width:28px;height:28px;border:3px solid #334155;
+      border-top-color:#60a5fa;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🔍 Buscador de Editais Públicos</h1>
+  <p>Dados atualizados automaticamente todo dia via GitHub Actions</p>
+  <div class="tag-update">Última atualização: <b id="ultima-atualizacao">—</b></div>
+</header>
+
+<div class="panel">
+  <div class="ig" style="flex:2;min-width:200px">
+    <label>Cargo / Palavra-chave</label>
+    <input type="text" id="cargo" placeholder="Ex: analista ambiental, biólogo, professor..."/>
+  </div>
+  <div class="ig">
+    <label>Estado</label>
+    <select id="estado">
+      <option value="">Todos os estados</option>
+      <option value="AC">Acre</option><option value="AL">Alagoas</option>
+      <option value="AP">Amapá</option><option value="AM">Amazonas</option>
+      <option value="BA">Bahia</option><option value="CE">Ceará</option>
+      <option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option>
+      <option value="GO">Goiás</option><option value="MA">Maranhão</option>
+      <option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option>
+      <option value="MG">Minas Gerais</option><option value="PA">Pará</option>
+      <option value="PB">Paraíba</option><option value="PR">Paraná</option>
+      <option value="PE">Pernambuco</option><option value="PI">Piauí</option>
+      <option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option>
+      <option value="RS">Rio Grande do Sul</option><option value="RO">Rondônia</option>
+      <option value="RR">Roraima</option><option value="SC">Santa Catarina</option>
+      <option value="SP">São Paulo</option><option value="SE">Sergipe</option>
+      <option value="TO">Tocantins</option>
+    </select>
+  </div>
+  <div class="ig" style="min-width:110px">
+    <label>Situação</label>
+    <select id="situacao">
+      <option value="">Todos</option>
+      <option value="Aberto">Abertos</option>
+      <option value="Previsto">Previstos</option>
+    </select>
+  </div>
+  <button id="btn-buscar" onclick="filtrar()">🔎 Buscar</button>
+</div>
+
+<div class="fontes-row">
+  <span>Mostrar:</span>
+  <div class="ft"><input type="checkbox" id="f-cnb" checked/><label for="f-cnb">🗺️ Concursos Públicos (ConcursosNoBrasil)</label></div>
+  <div class="ft"><input type="checkbox" id="f-if" checked/><label for="f-if">🏫 Institutos Federais (32 portais)</label></div>
+</div>
+
+<div class="stats" id="stats">
+  <div class="sc"><span id="s-total">0</span>Resultados</div>
+  <div class="sc"><span id="s-cnb">0</span>Concursos</div>
+  <div class="sc"><span id="s-if">0</span>Inst. Federais</div>
+  <div class="sc"><span id="s-abertos">0</span>Abertos</div>
+  <div class="sc"><span id="s-prev">0</span>Previstos</div>
+</div>
+
+<div id="loading"><div class="spinner"></div><br/>Carregando dados...</div>
+<div class="results" id="results"></div>
+
+<script>
+let TODOS = [];
+
+function matches(item, cargo, uf, situacao) {
+  if (cargo.trim()) {
+    const words = cargo.toLowerCase().trim().split(/\s+/);
+    const t = (item.orgao + " " + (item.vagas || "") + " " + (item.estado || "")).toLowerCase();
+    if (!words.every(w => t.includes(w))) return false;
+  }
+  if (uf && item.uf !== uf && item.tipo !== "instituto_federal") return false;
+  if (situacao && item.situacao !== situacao) return false;
+  return true;
+}
+
+function renderCard(item) {
+  const isIF  = item.tipo === "instituto_federal";
+  const isPrev = item.situacao === "Previsto";
+  let cls = "card" + (isIF ? " if-card" : isPrev ? " previsto" : "");
+  const badge = isIF
+    ? `<span class="badge bif">🏫 Instituto Federal</span>`
+    : isPrev
+    ? `<span class="badge bp">📋 Previsto</span>`
+    : `<span class="badge ba">✅ Aberto</span>`;
+  const tagUF  = item.uf    ? `<span class="tag">${item.uf}</span> ` : "";
+  const tagFonte = item.fonte ? `<span class="tag green">${item.fonte}</span> ` : "";
+  return `
+  <div class="${cls}">
+    <div class="ch">
+      <div>${tagUF}${tagFonte}<div class="ctitle">${item.orgao}</div></div>
+      <div class="badges">${badge}</div>
+    </div>
+    <div class="cb">
+      ${item.vagas  ? `<div>🏛️ <strong>Vagas:</strong> ${item.vagas}</div>` : ""}
+      ${item.prazo  ? `<div>📅 <strong>Prazo:</strong> ${item.prazo}</div>` : ""}
+      ${item.estado && item.uf  ? `<div>📍 <strong>Estado:</strong> ${item.estado}</div>` : ""}
+      ${item.estado && !item.uf ? `<div>📍 <strong>Instituição:</strong> ${item.estado}</div>` : ""}
+    </div>
+    <div class="cf">${item.link ? `<a href="${item.link}" target="_blank">🔗 Ver edital</a>` : ""}</div>
+  </div>`;
+}
+
+function filtrar() {
+  const cargo    = document.getElementById("cargo").value;
+  const uf       = document.getElementById("estado").value;
+  const situacao = document.getElementById("situacao").value;
+  const showCNB  = document.getElementById("f-cnb").checked;
+  const showIF   = document.getElementById("f-if").checked;
+
+  let items = TODOS.filter(it => {
+    if (!showCNB && it.tipo === "concurso_publico")  return false;
+    if (!showIF  && it.tipo === "instituto_federal") return false;
+    return matches(it, cargo, uf, situacao);
+  });
+
+  const nCNB   = items.filter(i => i.tipo !== "instituto_federal").length;
+  const nIF    = items.filter(i => i.tipo === "instituto_federal").length;
+  const nAb    = items.filter(i => i.situacao === "Aberto").length;
+  const nPrev  = items.filter(i => i.situacao === "Previsto").length;
+  document.getElementById("s-total").textContent  = items.length;
+  document.getElementById("s-cnb").textContent    = nCNB;
+  document.getElementById("s-if").textContent     = nIF;
+  document.getElementById("s-abertos").textContent = nAb;
+  document.getElementById("s-prev").textContent   = nPrev;
+  document.getElementById("stats").style.display  = "flex";
+
+  const cont = document.getElementById("results");
+  cont.innerHTML = items.length === 0
+    ? `<div class="empty">😕 Nenhum resultado.<br/><small style="color:#475569">Tente outro termo ou deixe em branco para ver todos.</small></div>`
+    : items.map(renderCard).join("");
+}
+
+async function carregarDados() {
+  document.getElementById("loading").style.display = "block";
+  try {
+    const res  = await fetch("data.json?t=" + Date.now());
+    const data = await res.json();
+    TODOS      = data.resultados || [];
+    document.getElementById("ultima-atualizacao").textContent = data.atualizado_em || "—";
+    document.getElementById("loading").style.display = "none";
+    filtrar();
+  } catch(e) {
+    document.getElementById("loading").innerHTML =
+      `<div style="color:#f87171">❌ Erro ao carregar data.json.<br/><small>Rode o scraper.py para gerar o arquivo.</small></div>`;
+  }
+}
+
+document.getElementById("cargo").addEventListener("keydown", e => { if(e.key==="Enter") filtrar(); });
+["f-cnb","f-if"].forEach(id => document.getElementById(id).addEventListener("change", filtrar));
+["estado","situacao"].forEach(id => document.getElementById(id).addEventListener("change", filtrar));
+
+carregarDados();
+</script>
+</body>
+</html>
